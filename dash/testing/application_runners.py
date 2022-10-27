@@ -288,10 +288,10 @@ class ProcessRunner(BaseDashRunner):
         self.port = port
         args = shlex.split(
             raw_command
-            if raw_command
-            else f"waitress-serve --listen=0.0.0.0:{port} {app_module}:{application_name}.server",
+            or f"waitress-serve --listen=0.0.0.0:{port} {app_module}:{application_name}.server",
             posix=not self.is_windows,
         )
+
 
         logger.debug("start dash process with %s", args)
 
@@ -351,8 +351,9 @@ class RRunner(ProcessRunner):
             # app is a string chunk, we make a temporary folder to store app.R
             # and its relevant assets
             self._tmp_app_path = os.path.join(
-                "/tmp" if not self.is_windows else os.getenv("TEMP"), uuid.uuid4().hex
+                os.getenv("TEMP") if self.is_windows else "/tmp", uuid.uuid4().hex
             )
+
             try:
                 os.mkdir(self.tmp_app_path)
             except OSError:
@@ -413,12 +414,13 @@ class RRunner(ProcessRunner):
         logger.debug("start dash process with %s", args)
 
         try:
-            self.proc = subprocess.Popen(  # pylint: disable=consider-using-with
+            self.proc = subprocess.Popen(
                 args,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                cwd=self.tmp_app_path if self.tmp_app_path else cwd,
+                cwd=self.tmp_app_path or cwd,
             )
+
             # wait until server is able to answer http request
             wait.until(lambda: self.accessible(self.url), timeout=start_timeout)
 
@@ -448,8 +450,9 @@ class JuliaRunner(ProcessRunner):
             # app is a string chunk, we make a temporary folder to store app.jl
             # and its relevant assets
             self._tmp_app_path = os.path.join(
-                "/tmp" if not self.is_windows else os.getenv("TEMP"), uuid.uuid4().hex
+                os.getenv("TEMP") if self.is_windows else "/tmp", uuid.uuid4().hex
             )
+
             try:
                 os.mkdir(self.tmp_app_path)
             except OSError:
@@ -509,12 +512,13 @@ class JuliaRunner(ProcessRunner):
         logger.debug("start Dash.jl process with %s", args)
 
         try:
-            self.proc = subprocess.Popen(  # pylint: disable=consider-using-with
+            self.proc = subprocess.Popen(
                 args,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                cwd=self.tmp_app_path if self.tmp_app_path else cwd,
+                cwd=self.tmp_app_path or cwd,
             )
+
             # wait until server is able to answer http request
             wait.until(lambda: self.accessible(self.url), timeout=start_timeout)
 

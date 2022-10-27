@@ -130,12 +130,14 @@ def test_msps001_basic_persistence(dash_dcc):
     dash_dcc.select_date_single("datepickersingle", day="20")
 
     dash_dcc.find_element("#dropdownsingle .Select-input input").send_keys(
-        "one" + Keys.ENTER
+        f"one{Keys.ENTER}"
     )
 
+
     dash_dcc.find_element("#dropdownmulti .Select-input input").send_keys(
-        "six" + Keys.ENTER
+        f"six{Keys.ENTER}"
     )
+
 
     dash_dcc.find_element("#input").send_keys(" maybe")
 

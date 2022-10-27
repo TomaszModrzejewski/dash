@@ -20,7 +20,7 @@ def test_cbmf001_bad_output_outputs(dash_thread_server):
 
     # first a good request
     response = requests.post(
-        dash_thread_server.url + "/_dash-update-component",
+        f"{dash_thread_server.url}/_dash-update-component",
         json=dict(
             output="o1.children",
             outputs={"id": "o1", "property": "children"},
@@ -28,6 +28,7 @@ def test_cbmf001_bad_output_outputs(dash_thread_server):
             changedPropIds=["i.value"],
         ),
     )
+
     assert response.status_code == 200
     assert '"o1":{"children":9}' in response.text
 
@@ -41,13 +42,14 @@ def test_cbmf001_bad_output_outputs(dash_thread_server):
     ]
     for outspeci in outspecs:
         response = requests.post(
-            dash_thread_server.url + "/_dash-update-component",
+            f"{dash_thread_server.url}/_dash-update-component",
             json=dict(
                 inputs=[{"id": "i", "property": "value", "value": 9}],
                 changedPropIds=["i.value"],
-                **outspeci
+                **outspeci,
             ),
         )
+
         assert response.status_code == 500
         assert "o1" not in response.text
         assert "children" not in response.text

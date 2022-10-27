@@ -41,17 +41,20 @@ def check_errors(dash_duo, specs):
         else:
             raise AssertionError(
                 (
-                    "error {} ({}) not found with text:\n"
-                    "  {}\nThe found messages were:\n---\n{}"
-                ).format(
-                    i,
-                    message,
-                    "\n  ".join(snippets),
-                    "\n---\n".join(
-                        "{}\n{}".format(msg, txt) for msg, txt in orig_found
-                    ),
+                    (
+                        "error {} ({}) not found with text:\n"
+                        "  {}\nThe found messages were:\n---\n{}"
+                    ).format(
+                        i,
+                        message,
+                        "\n  ".join(snippets),
+                        "\n---\n".join(
+                            f"{msg}\n{txt}" for msg, txt in orig_found
+                        ),
+                    )
                 )
             )
+
 
     # ensure the errors didn't leave items in the pendingCallbacks queue
     assert dash_duo.driver.execute_script("return document.title") == "Dash"

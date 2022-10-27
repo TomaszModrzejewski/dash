@@ -38,7 +38,7 @@ def format_tag(tag_name, attributes, inner="", closed=False, opened=False):
     elif opened:
         tag += ">"
     else:
-        tag += ">" + inner + f"</{tag_name}>"
+        tag += f">{inner}" + f"</{tag_name}>"
     return tag
 
 
@@ -116,8 +116,7 @@ class AttributeDict(dict):
     # pylint: disable=inconsistent-return-statements
     def first(self, *names):
         for name in names:
-            value = self.get(name)
-            if value:
+            if value := self.get(name):
                 return value
         if not names:
             return next(iter(self), {})
@@ -220,6 +219,4 @@ def gen_salt(chars):
 
 
 def coerce_to_list(obj):
-    if not isinstance(obj, (list, tuple)):
-        return [obj]
-    return obj
+    return obj if isinstance(obj, (list, tuple)) else [obj]

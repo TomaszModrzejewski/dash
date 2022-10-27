@@ -23,19 +23,21 @@ def test_ddvi001_fixed_table(dash_duo):
             DataTable(
                 id="table",
                 columns=[
-                    {"name": x, "id": x, "selectable": True} for x in ["a", "b", "c"]
+                    {"name": x, "id": x, "selectable": True}
+                    for x in ["a", "b", "c"]
                 ],
                 editable=True,
                 row_deletable=True,
                 fixed_rows=dict(headers=True),
                 fixed_columns=dict(headers=True),
                 data=[
-                    {"a": "a" + str(x), "b": "b" + str(x), "c": "c" + str(x)}
-                    for x in range(0, 20)
+                    {"a": f"a{str(x)}", "b": f"b{str(x)}", "c": f"c{str(x)}"}
+                    for x in range(20)
                 ],
             ),
         ]
     )
+
 
     dash_duo.start_server(app)
 

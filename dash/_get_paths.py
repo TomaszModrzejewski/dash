@@ -9,10 +9,7 @@ def get_asset_url(path):
 
 
 def app_get_asset_url(config, path):
-    if config.assets_external_path:
-        prefix = config.assets_external_path
-    else:
-        prefix = config.requests_pathname_prefix
+    prefix = config.assets_external_path or config.requests_pathname_prefix
     return "/".join(
         [
             # Only take the first part of the pathname
