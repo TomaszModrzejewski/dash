@@ -226,7 +226,7 @@ class Browser(DashPageMixin):
         with a filename combining test case name and the
         running selenium session id
         """
-        target = "/tmp/dash_artifacts" if not self._is_windows() else os.getenv("TEMP")
+        target = os.getenv("TEMP") if self._is_windows() else "/tmp/dash_artifacts"
         if not os.path.exists(target):
             try:
                 os.mkdir(target)
@@ -413,8 +413,9 @@ class Browser(DashPageMixin):
         menu = dropdown.find_element(By.CSS_SELECTOR, "div.Select-menu-outer")
         logger.debug("the available options are %s", "|".join(menu.text.split("\n")))
 
-        options = menu.find_elements(By.CSS_SELECTOR, "div.VirtualizedSelectOption")
-        if options:
+        if options := menu.find_elements(
+            By.CSS_SELECTOR, "div.VirtualizedSelectOption"
+        ):
             if isinstance(index, int):
                 options[index].click()
                 return
@@ -610,8 +611,7 @@ class Browser(DashPageMixin):
     def reset_log_timestamp(self):
         """reset_log_timestamp only work with chrome webdriver."""
         if self.driver.name.lower() == "chrome":
-            entries = self.driver.get_log("browser")
-            if entries:
+            if entries := self.driver.get_log("browser"):
                 self._last_ts = entries[-1]["timestamp"]
 
     @property

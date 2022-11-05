@@ -17,7 +17,7 @@ def test_dvct001_callback_timing(dash_thread_server):
     dash_thread_server(app, debug=True, use_reloader=False, use_debugger=True)
 
     response = requests.post(
-        dash_thread_server.url + "/_dash-update-component",
+        f"{dash_thread_server.url}/_dash-update-component",
         json={
             "output": "x.p",
             "outputs": {"id": "x", "property": "p"},
@@ -25,6 +25,7 @@ def test_dvct001_callback_timing(dash_thread_server):
             "changedPropIds": ["y.q"],
         },
     )
+
 
     # eg 'Server-Timing': '__dash_server;dur=505, pancakes;dur=1230'
     assert "Server-Timing" in response.headers

@@ -374,7 +374,7 @@ class Dash:
             if name is None:
                 name = getattr(server, "name", "__main__")
         elif isinstance(server, bool):
-            name = name if name else "__main__"
+            name = name or "__main__"
             self.server = flask.Flask(name) if server else None
         else:
             raise ValueError("server must be a Flask app or a boolean")
@@ -709,7 +709,7 @@ class Dash:
         # for cache busting
         def _relative_url_path(relative_package_path="", namespace=""):
             if any(
-                relative_package_path.startswith(x + "/")
+                relative_package_path.startswith(f"{x}/")
                 for x in ["dcc", "html", "dash_table"]
             ):
                 relative_package_path = relative_package_path.replace("dash.", "")
@@ -790,9 +790,10 @@ class Dash:
 
         deps = []
         for js_dist_dependency in _dash_renderer._js_dist_dependencies:
-            dep = {}
-            for key, value in js_dist_dependency.items():
-                dep[key] = value[mode] if isinstance(value, dict) else value
+            dep = {
+                key: value[mode] if isinstance(value, dict) else value
+                for key, value in js_dist_dependency.items()
+            }
 
             deps.append(dep)
 
@@ -871,7 +872,7 @@ class Dash:
             "".join([flask.request.url_root, image.lstrip("/")]) if image else None
         )
         supplied_image_url = start_page.get("image_url")
-        image_url = supplied_image_url if supplied_image_url else assets_image_url
+        image_url = supplied_image_url or assets_image_url
 
         title = start_page.get("title", self.title)
         if callable(title):
@@ -948,10 +949,7 @@ class Dash:
 
         # use self.title instead of app.config.title for backwards compatibility
         title = self.title
-        pages_metas = ""
-        if self.use_pages:
-            pages_metas = self._pages_meta_tags()
-
+        pages_metas = self._pages_meta_tags() if self.use_pages else ""
         if self._favicon:
             favicon_mod_time = os.path.getmtime(
                 os.path.join(self.config.assets_folder, self._favicon)
@@ -1244,10 +1242,9 @@ class Dash:
 
             # Add outputs_grouping
             outputs_indices = cb["outputs_indices"]
-            if not isinstance(outputs_list, list):
-                flat_outputs = [outputs_list]
-            else:
-                flat_outputs = outputs_list
+            flat_outputs = (
+                outputs_list if isinstance(outputs_list, list) else [outputs_list]
+            )
 
             outputs_grouping = map_grouping(
                 lambda ind: flat_outputs[ind], outputs_indices
@@ -1337,11 +1334,7 @@ class Dash:
             else:
                 s = current.replace(walk_dir, "").lstrip("\\").lstrip("/")
                 splitted = slash_splitter.split(s)
-                if len(splitted) > 1:
-                    base = "/".join(slash_splitter.split(s))
-                else:
-                    base = splitted[0]
-
+                base = "/".join(slash_splitter.split(s)) if len(splitted) > 1 else splitted[0]
             if ignore_filter:
                 files_gen = (x for x in files if not ignore_filter.search(x))
             else:

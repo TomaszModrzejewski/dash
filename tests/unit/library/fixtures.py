@@ -10,19 +10,19 @@ def scalar_grouping_size(request):
     return 0, 1
 
 
-@pytest.fixture(params=list(range(0, 5)))
+@pytest.fixture(params=list(range(5)))
 def list_grouping_size(request):
     n = request.param
     return list(range(n)), n
 
 
-@pytest.fixture(params=list(range(0, 5)))
+@pytest.fixture(params=list(range(5)))
 def dict_grouping_size(request):
     n = request.param
     return {string.ascii_uppercase[i]: i for i in range(n)}, n
 
 
-@pytest.fixture(params=list(range(0, 5)))
+@pytest.fixture(params=list(range(5)))
 def mixed_grouping_size(request):
     case = request.param
     if case == 0:

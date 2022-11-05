@@ -99,8 +99,7 @@ def validate_id_string(arg):
     arg_id = arg.component_id
 
     invalid_chars = ".{"
-    invalid_found = [x for x in invalid_chars if x in arg_id]
-    if invalid_found:
+    if invalid_found := [x for x in invalid_chars if x in arg_id]:
         raise exceptions.InvalidComponentIdError(
             f"""
             The element `{arg_id}` contains `{"`, `".join(invalid_found)}` in its ID.
@@ -123,7 +122,7 @@ def validate_output_spec(output, output_spec, Output):
     for outi, speci in zip(output, output_spec):
         speci_list = speci if isinstance(speci, (list, tuple)) else [speci]
         for specij in speci_list:
-            if not Output(specij["id"], specij["property"]) == outi:
+            if Output(specij["id"], specij["property"]) != outi:
                 raise exceptions.CallbackException(
                     "Output does not match callback definition"
                 )
@@ -226,7 +225,7 @@ def fail_callback_output(output_value, output):
                 """
             )
 
-        obj = "tree with one value" if not toplevel else "value"
+        obj = "value" if toplevel else "tree with one value"
         raise exceptions.InvalidCallbackReturnValue(
             dedent(
                 f"""
@@ -287,14 +286,17 @@ def fail_callback_output(output_value, output):
                 # Children that are not of type Component or
                 # list/tuple not returned by traverse
                 child = getattr(j, "children", None)
-                if not isinstance(child, (tuple, MutableSequence)):
-                    if child and not _can_serialize(child):
-                        _raise_invalid(
-                            bad_val=child,
-                            outer_val=val,
-                            path=p + "\n" + "[*] " + type(child).__name__,
-                            index=index,
-                        )
+                if (
+                    not isinstance(child, (tuple, MutableSequence))
+                    and child
+                    and not _can_serialize(child)
+                ):
+                    _raise_invalid(
+                        bad_val=child,
+                        outer_val=val,
+                        path=p + "\n" + "[*] " + type(child).__name__,
+                        index=index,
+                    )
             if unserializable_items:
                 p, j = unserializable_items[0]
                 # just report the first one, even if there are multiple,
@@ -303,14 +305,17 @@ def fail_callback_output(output_value, output):
 
             # Also check the child of val, as it will not be returned
             child = getattr(val, "children", None)
-            if not isinstance(child, (tuple, MutableSequence)):
-                if child and not _can_serialize(val):
-                    _raise_invalid(
-                        bad_val=child,
-                        outer_val=val,
-                        path=type(child).__name__,
-                        index=index,
-                    )
+            if (
+                not isinstance(child, (tuple, MutableSequence))
+                and child
+                and not _can_serialize(val)
+            ):
+                _raise_invalid(
+                    bad_val=child,
+                    outer_val=val,
+                    path=type(child).__name__,
+                    index=index,
+                )
 
         if not _can_serialize(val):
             _raise_invalid(
@@ -373,8 +378,9 @@ def validate_js_path(registered_paths, package_name, path_in_package_dist):
 
 
 def validate_index(name, checks, index):
-    missing = [i for check, i in checks if not re.compile(check).search(index)]
-    if missing:
+    if missing := [
+        i for check, i in checks if not re.compile(check).search(index)
+    ]:
         plural = "s" if len(missing) > 1 else ""
         raise exceptions.InvalidIndexException(
             f"Missing item{plural} {', '.join(missing)} in {name}."
@@ -501,13 +507,13 @@ def validate_long_callbacks(callback_map):
 
         long_inputs = coerce_to_list(callback["raw_inputs"])
         outputs = set([x[0] for x in running] + progress)
-        circular = [
+        if circular := [
             x
-            for x in set(k for k, v in input_indexed.items() if v.intersection(outputs))
+            for x in {
+                k for k, v in input_indexed.items() if v.intersection(outputs)
+            }
             if x in long_inputs
-        ]
-
-        if circular:
+        ]:
             raise exceptions.LongCallbackError(
                 f"Long callback circular error!\n{circular} is used as input for a long callback"
                 f" but also used as output from an input that is updated with progress or running argument."

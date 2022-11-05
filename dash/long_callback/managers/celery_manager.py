@@ -82,10 +82,7 @@ CeleryLongCallbackManager requires extra dependencies which can be installed doi
         return _make_job_fn(fn, self.handle, progress)
 
     def get_task(self, job):
-        if job:
-            return self.handle.AsyncResult(job)
-
-        return None
+        return self.handle.AsyncResult(job) if job else None
 
     def clear_cache_entry(self, key):
         self.handle.backend.delete(key)
@@ -96,8 +93,7 @@ CeleryLongCallbackManager requires extra dependencies which can be installed doi
 
     def get_progress(self, key):
         progress_key = self._make_progress_key(key)
-        progress_data = self.handle.backend.get(progress_key)
-        if progress_data:
+        if progress_data := self.handle.backend.get(progress_key):
             return json.loads(progress_data)
 
         return None
@@ -116,10 +112,9 @@ CeleryLongCallbackManager requires extra dependencies which can be installed doi
         # Clear result if not caching
         if self.cache_by is None:
             self.clear_cache_entry(key)
-        else:
-            if self.expire:
-                # Set/update expiration time
-                self.handle.backend.expire(key, self.expire)
+        elif self.expire:
+            # Set/update expiration time
+            self.handle.backend.expire(key, self.expire)
         self.clear_cache_entry(self._make_progress_key(key))
 
         self.terminate_job(job)

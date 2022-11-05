@@ -91,7 +91,7 @@ def test_knav004_can_move_out_of_viewport(test):
     target = test.table("table")
 
     target.cell(3, 1).click()
-    for i in range(25):
+    for _ in range(25):
         test.send_keys(Keys.ARROW_DOWN)
 
     test.send_keys(Keys.ARROW_RIGHT)
@@ -112,7 +112,7 @@ def test_knav005_can_select_down_twice(test, props):
         test.send_keys(Keys.ARROW_DOWN + Keys.ARROW_DOWN)
 
     for row in range(2, 7):
-        for col in range(0, 2):
+        for col in range(2):
             assert target.cell(row, col).is_selected() == (
                 row in [3, 4, 5] and col in [1]
             )
@@ -132,7 +132,7 @@ def test_knav006_can_select_down_then_up(test, props):
         test.send_keys(Keys.ARROW_DOWN + Keys.ARROW_UP)
 
     for row in range(2, 5):
-        for col in range(0, 2):
+        for col in range(2):
             assert target.cell(row, col).is_selected() == (row in [3] and col in [1])
 
     assert test.get_log_errors() == []
@@ -150,7 +150,7 @@ def test_knav007_can_select_down_then_right(test, props):
         test.send_keys(Keys.ARROW_DOWN + Keys.ARROW_RIGHT)
 
     for row in range(2, 6):
-        for col in range(0, 3):
+        for col in range(3):
             assert target.cell(row, col).is_selected() == (
                 row in [3, 4] and col in [1, 2]
             )
@@ -159,14 +159,7 @@ def test_knav007_can_select_down_then_right(test, props):
 
 
 @pytest.mark.parametrize("props", read_write_modes)
-@pytest.mark.parametrize(
-    "keys,row,col",
-    [
-        (Keys.ENTER, 4, 1),
-        ("abc" + Keys.ENTER, 4, 1),
-        (Keys.TAB, 3, 2),
-    ],
-)
+@pytest.mark.parametrize("keys,row,col", [(Keys.ENTER, 4, 1), (f"abc{Keys.ENTER}", 4, 1), (Keys.TAB, 3, 2)])
 def test_knav008_focus_cell_on_enter(test, props, keys, row, col):
     test.start_server(get_app(props))
 

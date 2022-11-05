@@ -43,8 +43,7 @@ def setup_long_callback_app(manager_name, app_name):
 
         # Clear redis of cached values
         redis_conn = redis.Redis(host="localhost", port=6379, db=1)
-        cache_keys = redis_conn.keys()
-        if cache_keys:
+        if cache_keys := redis_conn.keys():
             redis_conn.delete(*cache_keys)
 
         worker = subprocess.Popen(

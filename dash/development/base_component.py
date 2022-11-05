@@ -33,8 +33,8 @@ class ComponentRegistry:
 class ComponentMeta(abc.ABCMeta):
 
     # pylint: disable=arguments-differ
-    def __new__(mcs, name, bases, attributes):
-        component = abc.ABCMeta.__new__(mcs, name, bases, attributes)
+    def __new__(cls, name, bases, attributes):
+        component = abc.ABCMeta.__new__(cls, name, bases, attributes)
         module = attributes["__module__"].split(".")[0]
         if name == "Component" or module == "builtins":
             # Don't do the base component
@@ -201,31 +201,25 @@ class Component(metaclass=ComponentMeta):
         return v
 
     def to_plotly_json(self):
-        # Add normal properties
         props = {
             p: getattr(self, p)
             for p in self._prop_names  # pylint: disable=no-member
             if hasattr(self, p)
+        } | {
+            k: getattr(self, k)
+            for k in self.__dict__
+            if any(
+                k.startswith(w)
+                # pylint:disable=no-member
+                for w in self._valid_wildcard_attributes
+            )
         }
-        # Add the wildcard properties data-* and aria-*
-        props.update(
-            {
-                k: getattr(self, k)
-                for k in self.__dict__
-                if any(
-                    k.startswith(w)
-                    # pylint:disable=no-member
-                    for w in self._valid_wildcard_attributes
-                )
-            }
-        )
-        as_json = {
+
+        return {
             "props": props,
             "type": self._type,  # pylint: disable=no-member
             "namespace": self._namespace,  # pylint: disable=no-member
         }
-
-        return as_json
 
     # pylint: disable=too-many-branches, too-many-return-statements
     # pylint: disable=redefined-builtin, inconsistent-return-statements
@@ -235,17 +229,18 @@ class Component(metaclass=ComponentMeta):
         # pylint: disable=access-member-before-definition,
         # pylint: disable=attribute-defined-outside-init
         if isinstance(self.children, Component):
-            if getattr(self.children, "id", None) is not None:
-                # Woohoo! It's the item that we're looking for
-                if self.children.id == id:
-                    if operation == "get":
-                        return self.children
-                    if operation == "set":
-                        self.children = new_item
-                        return
-                    if operation == "delete":
-                        self.children = None
-                        return
+            if (
+                getattr(self.children, "id", None) is not None
+                and self.children.id == id
+            ):
+                if operation == "get":
+                    return self.children
+                if operation == "set":
+                    self.children = new_item
+                    return
+                if operation == "delete":
+                    self.children = None
+                    return
 
             # Recursively dig into its subtree
             try:
@@ -334,12 +329,11 @@ class Component(metaclass=ComponentMeta):
 
         # children is just a component
         if isinstance(children, Component):
-            yield "[*] " + children_string, children
+            yield (f"[*] {children_string}", children)
             # pylint: disable=protected-access
             for p, t in children._traverse_with_paths():
-                yield "\n".join(["[*] " + children_string, p]), t
+                yield ("\n".join([f"[*] {children_string}", p]), t)
 
-        # children is a list of components
         elif isinstance(children, (tuple, MutableSequence)):
             for idx, i in enumerate(children):
                 list_path = f"[{idx:d}] {type(i).__name__:s}{self._id_str(i)}"
@@ -371,8 +365,7 @@ class Component(metaclass=ComponentMeta):
         if getattr(self, "children", None) is None:
             length = 0
         elif isinstance(self.children, Component):
-            length = 1
-            length += len(self.children)
+            length = 1 + len(self.children)
         elif isinstance(self.children, (tuple, MutableSequence)):
             for c in self.children:
                 length += 1

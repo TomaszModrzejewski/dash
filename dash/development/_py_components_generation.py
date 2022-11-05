@@ -102,15 +102,16 @@ def generate_class_string(
         args = "{k: _locals[k] for k in _explicit_args}"
         argtext = "**args"
 
-    if len(required_args) == 0:
-        required_validation = ""
-    else:
-        required_validation = f"""
+    required_validation = (
+        f"""
         for k in {required_args}:
             if k not in args:
                 raise TypeError(
                     'Required argument `' + k + '` was not specified.')
         """
+        if required_args
+        else ""
+    )
 
     if is_children_required:
         required_validation += """
@@ -245,8 +246,7 @@ def generate_class(
     scope = {"Component": Component, "_explicitize_args": _explicitize_args}
     # pylint: disable=exec-used
     exec(string, scope)
-    result = scope[typename]
-    return result
+    return scope[typename]
 
 
 def required_props(props):
@@ -336,11 +336,11 @@ def parse_wildcards(props):
     list
         List of Dash valid wildcard prefixes
     """
-    list_of_valid_wildcard_attr_prefixes = []
-    for wildcard_attr in ["data-*", "aria-*"]:
-        if wildcard_attr in props:
-            list_of_valid_wildcard_attr_prefixes.append(wildcard_attr[:-1])
-    return list_of_valid_wildcard_attr_prefixes
+    return [
+        wildcard_attr[:-1]
+        for wildcard_attr in ["data-*", "aria-*"]
+        if wildcard_attr in props
+    ]
 
 
 def reorder_props(props):
@@ -421,11 +421,11 @@ def filter_props(props):
                 filtered_props.pop(arg_name)
         elif "flowType" in arg:  # These come from Flow & handled differently
             arg_type_name = arg["flowType"]["name"]
-            if arg_type_name == "signature":
-                # This does the same as the PropTypes filter above, but "func"
-                # is under "type" if "name" is "signature" vs just in "name"
-                if "type" not in arg["flowType"] or arg["flowType"]["type"] != "object":
-                    filtered_props.pop(arg_name)
+            if arg_type_name == "signature" and (
+                "type" not in arg["flowType"]
+                or arg["flowType"]["type"] != "object"
+            ):
+                filtered_props.pop(arg_name)
         else:
             raise ValueError
 
@@ -495,7 +495,7 @@ def create_prop_docstring(
     # formats description
     period = "." if description else ""
     description = description.strip().strip(".").replace('"', r"\"") + period
-    desc_indent = indent_spacing + "    "
+    desc_indent = f"{indent_spacing}    "
     description = fill(
         description,
         initial_indent=desc_indent,
@@ -564,10 +564,11 @@ def map_js_to_py_types_prop_types(type_object, indent_num):
         inner = js_to_py_type(type_object["value"])
         if inner:
             return "list of " + (
-                inner + "s"
+                f"{inner}s"
                 if inner.split(" ")[0] != "dict"
                 else inner.replace("dict", "dicts", 1)
             )
+
         return "list"
 
     def tuple_of():

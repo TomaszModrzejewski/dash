@@ -156,7 +156,7 @@ def callback(
         if progress_default:
             long_spec["progressDefault"] = coerce_to_list(progress_default)
 
-            if not len(long_spec["progress"]) == len(long_spec["progressDefault"]):
+            if len(long_spec["progress"]) != len(long_spec["progressDefault"]):
                 raise Exception(
                     "Progress and progress default needs to be of same length"
                 )
@@ -345,10 +345,10 @@ def register_callback(  # pylint: disable=R0914
 
                 current_key = callback_manager.build_cache_key(
                     func,
-                    # Inputs provided as dict is kwargs.
-                    func_args if func_args else func_kwargs,
+                    func_args or func_kwargs,
                     long.get("cache_args_to_ignore", []),
                 )
+
 
                 if old_job:
                     for job in old_job:
@@ -362,7 +362,7 @@ def register_callback(  # pylint: disable=R0914
                     job = callback_manager.call_job_fn(
                         cache_key,
                         job_fn,
-                        func_args if func_args else func_kwargs,
+                        func_args or func_kwargs,
                         AttributeDict(
                             args_grouping=callback_ctx.args_grouping,
                             using_args_grouping=callback_ctx.using_args_grouping,
@@ -377,6 +377,7 @@ def register_callback(  # pylint: disable=R0914
                             ignore_register_page=True,
                         ),
                     )
+
 
                     data = {
                         "cacheKey": cache_key,
